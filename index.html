@@ -528,6 +528,33 @@
   }
   .btn-print:hover { border-color: var(--accent); color: var(--accent2); }
 
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ok);
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  @media print { .live-indicator { display: none !important; } }
+  @media (max-width: 700px) { .live-indicator span { display: none; } }
+
   /* MODAL IMPRESSÃO */
   .print-modal-overlay {
     display: none;
@@ -605,6 +632,9 @@
       <span class="prazo-date" style="color:#f472b6">31/07/2026</span>
       <span class="prazo-countdown" id="cdEcf"></span>
     </div>
+  </div>
+  <div class="live-indicator" title="Atualiza automaticamente a cada 30 segundos">
+    <span class="live-dot"></span> Atualização automática
   </div>
   <button class="btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
 </div>
@@ -1288,6 +1318,24 @@ carregarDoSupabase().then(() => {
   renderTable();
   showToast('✅ Dados carregados com sucesso!');
 });
+
+// ── ATUALIZAÇÃO AUTOMÁTICA (a cada 30s) ──────────────────
+async function atualizarAutomatico() {
+  // Não atualiza se algum menu/modal estiver aberto, para não perder ação em andamento
+  const algumModalAberto =
+    document.getElementById('modalOverlay')?.classList.contains('open') ||
+    document.getElementById('motivoOverlay')?.classList.contains('open') ||
+    document.getElementById('printModalOverlay')?.classList.contains('open') ||
+    openMenu !== null;
+
+  if (algumModalAberto) return;
+
+  const q = document.getElementById('searchInput').value;
+  await carregarDoSupabase();
+  updateStats();
+  renderTable();
+}
+setInterval(atualizarAutomatico, 30000);
 </script>
 </body>
 </html>
